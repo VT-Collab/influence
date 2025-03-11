@@ -20,7 +20,7 @@ We ran our simulations using `Julia 1.11.3`.
 The variable `num_experiments` controls the number of experiments. We report results from $50$ episodes which is the default value for this variable.
 
 ### Analysis and Plotting
-After running the script `run_experiment.jl` two folders will be creates. `data` has the CSV data for each interaction, `figures` has rewards plots and video of agents for each interaction . To see the overall results for all experiments run
+Results from the experiments are saved in two folders. `data` has the CSV data for each interaction, `figures` has rewards plots and video of agents for each interaction . To see the overall results for all experiments run
 
 ```
 julia plot_data.jl
