@@ -1,7 +1,7 @@
 This directory provides the implemetnation details for the Circle environment as discussed in Section $6.2$ of the paper.
 
 <div style="display: flex; justify-content: center; align-items: center;">
-  <img src="https://github.com/user-attachments/assets/1c08e434-4f20-4a05-9bd5-b22f63d56cdc" style="width: 400px; height: auto; margin: 0 10px;">
+  <img src="https://github.com/user-attachments/assets/da19c46d-0893-4d1d-ba8d-1e3a509ad744" style="width: 388px; height: auto; margin: 0 10px;">
 </div>
 
 ## Environment
