@@ -1,6 +1,8 @@
 This directory provides the implemetnation details for the highway environment as discussed in Section $6.1$ of the paper.
 
-
+<div style="display: flex; justify-content: center; align-items: center;">
+  <img src="https://github.com/user-attachments/assets/1c08e434-4f20-4a05-9bd5-b22f63d56cdc" style="width: 400px; height: auto; margin: 0 10px;">
+</div>
 
 ## Environment
 In this environment the simulated humans drives alongside an autonomous car on a highway environment. The autonomous car's objective is to safely slow down the human driver.
