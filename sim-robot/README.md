@@ -1,7 +1,7 @@
 This directory provides the implemetnation details for the Robot environment as discussed in Section $6.2$ of the paper.
 
 <div style="display: flex; justify-content: center; align-items: center;">
-  <img src="https://github.com/user-attachments/assets/da19c46d-0893-4d1d-ba8d-1e3a509ad744" style="width: 600px; height: auto; margin: 0 10px;">
+  <img src="https://github.com/user-attachments/assets/771cc851-4e56-4c7b-990f-ac7948bdb6b4" style="width: 336px; height: auto; margin: 0 10px;">
 </div>
 
 ## Environment
