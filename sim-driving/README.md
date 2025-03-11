@@ -1,7 +1,7 @@
 This directory provides the implemetnation details for the Driving environment as discussed in Section $6.2$ of the paper.
 
 <div style="display: flex; justify-content: center; align-items: center;">
-  <img src="https://github.com/user-attachments/assets/da19c46d-0893-4d1d-ba8d-1e3a509ad744" style="width: 600px; height: auto; margin: 0 10px;">
+  <img src="https://github.com/user-attachments/assets/a4b204f2-e240-4c9d-bd0a-c6f2b2043ba0" style="width: 600px; height: auto; margin: 0 10px;">
 </div>
 
 ## Environment
