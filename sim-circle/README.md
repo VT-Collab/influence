@@ -5,7 +5,7 @@ This directory provides the implemetnation details for the Circle environment as
 </div>
 
 ## Environment
-The Circle environment is an instance of pursuit-evasion games [link](https://ieeexplore.ieee.org/abstract/document/1067989) with two-dimensional states and actions. The robot agent (i.e., the pursuer) tries to reach the simulated human agent (i.e., the evader). To avoid the robot the human moves along the circumference of the circle. Here $z$ is the human's location along the circle, and $\phi$ governs how the human moves along the circle to avoid the robot. For example, the human evader might move away from the robot's previous position. The robot's reward is its negative distance from the simulated human.
+The Circle environment is an instance of pursuit-evasion games [link](https://ieeexplore.ieee.org/abstract/document/1067989) with two-dimensional states and actions. The robot agent (i.e., the pursuer) tries to reach the simulated human agent (i.e., the evader). To avoid the robot the human moves along the circumference of the circle. Here $z$ encodes the human's location along the circle, and $\phi$ governs how the human moves along the circle to avoid the robot. For example, the human evader might move away from the robot's previous position. The robot's reward is its negative distance from the simulated human.
 
 ### Instructions
 Run the simulation using 
