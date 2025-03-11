@@ -21,7 +21,13 @@ We ran our simulations using `Julia 1.11.3`.
 The arguments `--int_multiplier` controls the number of interactions. We report results from $100$ interactions which is the default value for this argument.
 
 ### Collecting starting positions
-To compare this script with other methods run `random_positions.jl` to generate random starting positions as a `JSON` file.
+To compare this script with other methods run 
+
+```
+random_positions.jl
+``` 
+
+to generate random starting positions as a `JSON` file.
 
 ### Analysis and Plotting
 Results will be saved in the folder `unified-hw-res`. To analyze the the interaction data run 
