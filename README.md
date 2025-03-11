@@ -14,7 +14,7 @@ The required packages will install the first time that you run any of the Julia 
 The implementation details for each experiment are provided in the respective directories:
 - [Highway Environment](https://github.com/VT-Collab/influence/tree/master/sim-highway)
 
-- [Cicle Environment](https://github.com/VT-Collab/influence/tree/master/sim-circle)
+- [Circle Environment](https://github.com/VT-Collab/influence/tree/master/sim-circle)
 
 - [Driving Environment](https://github.com/VT-Collab/influence/tree/master/sim-driving)
 
