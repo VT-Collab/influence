@@ -17,11 +17,11 @@ combined_data = vcat(state_data, action_data)
 Note that the first element of the state is the timestamp which starts from 0 in the dataset.
 """
 
-using Pkg
-Pkg.add(["POMDPs", "POMDPTools", "DiscreteValueIteration", "CSV", "DataFrames", 
-                        "ArgParse", "Plots", "POMCPOW", "BasicPOMCP", "Distributions", 
-                        "ParticleFilters", "ProgressMeter", "LinearAlgebra", "StatsBase", 
-                        "Gtk4", "Joysticks", "Observables", "JSON", "XLSX"])
+# using Pkg
+# Pkg.add(["POMDPs", "POMDPTools", "DiscreteValueIteration", "CSV", "DataFrames", 
+#                         "ArgParse", "Plots", "POMCPOW", "BasicPOMCP", "Distributions", 
+#                         "ParticleFilters", "ProgressMeter", "LinearAlgebra", "StatsBase", 
+#                         "Gtk4", "Joysticks", "Observables", "JSON", "XLSX"])
 # Pkg.update()
 
 using JSON
@@ -36,7 +36,7 @@ user_ids = [0] # for sim we have id=0
 
 scenes = ["highway"]
 
-inte_to_read = 2
+inte_to_read = 100
 
 # Directory path for this code
 directoryPath = dirname(@__FILE__)
@@ -52,7 +52,7 @@ scene_folders = Dict(
 
 # Time horizon for each scene
 time_horizons = Dict(
-    "highway" => 100
+    "highway" => 120
 )
 
 # Function to save data to an Excel file

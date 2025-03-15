@@ -1,9 +1,5 @@
 """
-A Unified Framework for Robots that Influence Humans over Long-Term Interaction
-
-Highway environment simulation
-
-This script generated random numbers so all the cars start from the same position.
+Generating random numbers so all the cars start from the same location for each algorithm
 
 """
 
@@ -16,8 +12,8 @@ const NUM_INTERACTIONS = 101
 # Generate random X positions for each interaction
 positions = Dict("robot" => [], "human" => [])
 for i in 1:NUM_INTERACTIONS
-    push!(positions["robot"], rand([-2.0, 2.0]))
-    push!(positions["human"], rand([-2.0, 2.0]))
+    push!(positions["robot"], rand([0.5, 2.0]))
+    push!(positions["human"], rand([-2.0, -0.5]))
 end
 
 # Save positions to a JSON file in the same directory as this script

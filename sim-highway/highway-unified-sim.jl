@@ -5,15 +5,14 @@ Highway environment simulation
 
 Run random_positions.jl to create the positions.json file before running this script
 """
-# Comment out the Pkg stuff after the first run
-using Pkg
-Pkg.add(["POMDPs", "POMDPTools", "DiscreteValueIteration", "CSV", "DataFrames", 
-                        "ArgParse", "Plots", "POMCPOW", "BasicPOMCP", "Distributions", 
-                        "ParticleFilters", "ProgressMeter", "LinearAlgebra", "StatsBase", 
-                        "Gtk4", "Joysticks", "Observables", "PyCall"])
+### Comment out the Pkg stuff after the first run
+# Pkg.add(["POMDPs", "POMDPTools", "DiscreteValueIteration", "CSV", "DataFrames", 
+#                         "ArgParse", "Plots", "POMCPOW", "BasicPOMCP", "Distributions", 
+#                         "ParticleFilters", "ProgressMeter", "LinearAlgebra", "StatsBase", 
+#                         "Gtk4", "Joysticks", "Observables", "PyCall"])
 # Pkg.update()
 
-# Importing the packages
+# importing the packages
 using POMDPs, POMDPTools
 using Plots; default(fontfamily="Computer Modern", framestyle=:box, wtitle="Test")
 using Plots.PlotMeasures, ProgressMeter
@@ -32,11 +31,11 @@ ProgressMeter.ijulia_behavior(:clear)
 directoryPath = dirname(@__FILE__)
 mkpath(directoryPath * "/unified-hw-res")
 
-# Paths for the random positions
+# paths for the random positions
 positions_file_path = joinpath(directoryPath, "positions.json")
 positions = JSON.parsefile(positions_file_path)
 
-# Define the arguments
+# define the arguments
 function parse_commandline()
     arg = ArgParseSettings()
 
@@ -44,7 +43,7 @@ function parse_commandline()
         "--user_id"
             help="User ID"
             arg_type=Int32
-            default=00
+            default=00 # for the sim
         "--int_multiplier"
             help="Interaction multiplier"
             arg_type=Int32
@@ -57,20 +56,23 @@ function parse_commandline()
     return parse_args(arg)
 end
 
-# Parse the arguments
+# parse the arguments
 parsed_args = parse_commandline()
 
-#   Data structures
+#   User study and data
+#   ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
 USER_ID = parsed_args["user_id"]
 dataset = []
-
+global human_switched_to_1 = 0
+global human_switches_per_interaction = zeros(Int, parsed_args["int_multiplier"])
+global robot_ahead_counter = 0
+global robot_ahead_results = zeros(Int, parsed_args["int_multiplier"])
 #   Constants
-#   ≡≡≡≡≡≡≡≡≡
-
+#   ≡≡≡≡≡≡≡≡≡≡≡
 # Dynamics constants
-const dt = Float32(0.2)
-const friction = Float32(0.1) # friction coefficient
-const time_horizon = Int32(100); # length of interaction
+const dt = Float32(0.2) # adjust as needed
+const friction = Float32(0.1) # friction coefficient, adjust as needed
+const time_horizon = Int32(120); # length of interaction
 const MAX_ITERATIONS = time_horizon * parsed_args["int_multiplier"]   # maximum number of timesteps
 # Environment
 const road_length = Float32(1000) # in pixels
@@ -79,7 +81,7 @@ const highway_width = Float32(6.) # in meters
 const car_radius = 30 # in pixels
 const safe_distance = Float32(2.5)  # in meters, for human reward calculation
 # Robot
-const init_pos_R = Float32.([2.0, 14.])
+const init_pos_R = Float32.([2.0, 10.])
 const reset_vel_R = Float32.([0.0, 1.5]) # robot velocity
 const reset_ang_R = Float32(0.0) # robot angular velocity
 const reset_accel_R = Float32(0.0) # robot acceleration
@@ -89,18 +91,17 @@ const accel_bound_R = Float32.([-1.0, 1.0]) # Robot acceleration bounds
 const max_speed_R = Float32(1.75)
 const min_speed_R = Float32(0.8)
 # Human
-const init_pos_H = Float32.([-2.0, 10.])
-const reset_vel_H = Float32.([0.0, 1.0])
+const init_pos_H = Float32.([-2.0, 6.0])
+const reset_vel_H = Float32.([0.0, 2.0])
 const reset_ang_H = Float32(0.0)
 const reset_accel_H = Float32(0.0)
 const reset_heading_H = Float32(pi/2.)
-const accel_bound_H = Float32.([0.0, 1.5])
-const max_speed_H = Float32(4.0)
-const min_speed_H = Float32(1.5)
+const accel_bound_H = Float32.([-2.0, 20.0])
+const max_speed_H = Float32(15.0)
+const min_speed_H = Float32(0.0)
 
 #   Changing variables
 #   ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
-
 totalR = Float32(0.0) # for the robot
 d = Float32(1.0)
 counter = Int32(0)
@@ -114,7 +115,7 @@ mutable struct GlobalVars
 end
 global_vars = GlobalVars(Float32.([reset_heading_H, reset_accel_H]), 0.0, 0.0, 0)
 
-# Define the state type
+# define the state type
 mutable struct pomdpState
     time_step::Int32
     sR::Float32 # robot heading angle
@@ -129,7 +130,7 @@ mutable struct pomdpState
     accelH::Float32 # human acceleration
 end;
 
-# Define the observation type
+# define the observation type
 struct pomdpObservation
     sR::Float32 # robot heading angle
     pR_1::Float32 # robot position x
@@ -160,9 +161,9 @@ struct continuousObservationSpace end;
 Base.eltype(ospace::Type{continuousObservationSpace}) = pomdpObservation
     
 #   Define the POMDP World
-#   ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+#   ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
 
-# Defining the pomdp model
+# defining the pomdp model
 mutable struct pomdpWorld <: POMDP{pomdpState, Vector{Float32}, pomdpObservation}
     discount_factor::Float64 
 end;
@@ -195,7 +196,6 @@ function terminal_state(t)
         return false
     end
 end;
-
 
 # Define the transition function
 function POMDPs.transition(pomdp::pomdpWorld, state::pomdpState, actionR::Vector{Float32})
@@ -230,7 +230,7 @@ function POMDPs.transition(pomdp::pomdpWorld, state::pomdpState, actionR::Vector
         vH_ = copy(vH)
         angH_ = copy(angH)
         accelH_ = copy(accelH)
-        # Human joystick input
+        # Human input
         sH_ = Float32(actionH[1])
         accelH_ = Float32(actionH[2])
         speedH = Float32(norm(state.vH))
@@ -284,7 +284,7 @@ end;
     return -r
 end;
     
-# Human reward
+# Human reward for GUI
 function human_reward(pomdp::pomdpWorld, state::pomdpState, action::Vector{Float32})
     sH, pR, pH = state.sH, state.pR, state.pH
     interaction_score_ = copy(global_vars.interaction_score)
@@ -360,53 +360,88 @@ p = Progress(MAX_ITERATIONS, showspeed=true)
 generate_showvalues(iter, total) = () -> [(:timestep, iter), (:total, total)]
 
 # Create a GtkApplication
-app = GtkApplication("com.example.UnifiedHighway")
+app = GtkApplication("com.example.Unified")
 
 function human_cost(human_action, robot_action, state::pomdpState)
-    # Create a copy of the state to simulate transitions
+    # Create a copy of the current state
     state_copy = deepcopy(state)
 
-    dist_to_robot = max(0.0, 9.0 - sqrt((state_copy.pR[1] - state_copy.pH[1])^2 + (state_copy.pR[2] - state_copy.pH[2])^2))^2
-    dist_to_center = (0.4 * (state_copy.pH[1] - 0.0))^4
-    speed_of_human = sign(state_copy.vH[2]) * state_copy.vH[2]^2
-
-    # Update robot state
+    # Apply the actions to the copy
     headR, accelR_ = robot_action[1], robot_action[2]
     speedR = norm(state_copy.vR)
     new_angular_velocityR = speedR * headR
     new_accelerationR = accelR_ - friction * speedR
     new_headingR = headR + (state_copy.angR + new_angular_velocityR) * dt / 2.0
     new_speedR = clamp(speedR + (state_copy.accelR + new_accelerationR) * dt / 2.0, min_speed_R, max_speed_R)
-    new_velocityR = [(speedR + new_speedR) / 2.0 * cos((new_headingR + headR) / 2.0),
-                     (speedR + new_speedR) / 2.0 * sin((new_headingR + headR) / 2.0)]
+    new_velocityR = [
+        (speedR + new_speedR) / 2.0 * cos((new_headingR + headR) / 2.0),
+        (speedR + new_speedR) / 2.0 * sin((new_headingR + headR) / 2.0)
+    ]
     state_copy.pR[1] += new_velocityR[1] * dt
     state_copy.pR[2] += new_velocityR[2] * dt
     state_copy.sR = new_headingR
     state_copy.accelR = new_accelerationR
+    state_copy.vR = new_velocityR
 
-    # Update human state
     headH, accelH_ = human_action[1], human_action[2]
     speedH = norm(state_copy.vH)
     new_angular_velocityH = speedH * headH
     new_accelerationH = accelH_ - friction * speedH
     new_headingH = headH + (state_copy.angH + new_angular_velocityH) * dt / 2.0
     new_speedH = clamp(speedH + (state_copy.accelH + new_accelerationH) * dt / 2.0, min_speed_H, max_speed_H)
-    new_velocityH = [(speedH + new_speedH) / 2.0 * cos((new_headingH + headH) / 2.0),
-                     (speedH + new_speedH) / 2.0 * sin((new_headingH + headH) / 2.0)]
+    new_velocityH = [
+        (speedH + new_speedH) / 2.0 * cos((new_headingH + headH) / 2.0),
+        (speedH + new_speedH) / 2.0 * sin((new_headingH + headH) / 2.0)
+    ]
     state_copy.pH[1] += new_velocityH[1] * dt
     state_copy.pH[2] += new_velocityH[2] * dt
     state_copy.sH = new_headingH
     state_copy.accelH = new_accelerationH
+    state_copy.vH = new_velocityH
 
-    return dist_to_robot * 0.065 + dist_to_center * 0.05 - speed_of_human
+    dist_to_robot = max(0.0, 4.0 - sqrt(
+        (state_copy.pR[1] - state_copy.pH[1])^2 + (state_copy.pR[2] - state_copy.pH[2])^2
+    ))^2
+    
+    dist_to_center = (0.4 * state_copy.pH[1])^4
+    speed_of_human = sign(state_copy.vH[2]) * state_copy.vH[2]^2
+
+    return dist_to_robot * 10. + dist_to_center * 6. - speed_of_human * 15.
 end;
 
 function boltzmann_human(beta, UR, state::pomdpState, n_samples)
-    UH = rand(Distributions.Uniform(-0.25, 0.25), n_samples, 2)
+    global human_switched_to_1, human_switches_per_interaction, inter_num, robot_ahead_counter, robot_ahead_results
+
+    local_UR = copy(UR)
+
+    # Check if the robot is ahead at one timestep before the last of the interaction
+    if state.time_step % time_horizon == time_horizon - 1
+        if state.pR[2] > state.pH[2]
+            robot_ahead_results[inter_num] = 1
+        else
+            robot_ahead_results[inter_num] = 0
+        end
+    end
+
+    # For interactions 11 and after, check if the robot was ahead in more than 50% of the last 6 interactions
+    if inter_num >= 11
+        recent_results = robot_ahead_results[inter_num-6:inter_num-1]
+        if sum(recent_results) > 0.5 * 10 || inter_num % 10 == 0
+            # Check for collision
+            if sqrt((state.pR[1] - state.pH[1])^2 + (state.pR[2] - state.pH[2])^2) >= safe_distance
+                local_UR = [reset_heading_R, reset_accel_R]
+                human_switched_to_1 += 1
+                # println("Human switched to 1st at interaction $inter_num")
+                human_switches_per_interaction[inter_num] += 1
+            end
+        end
+    end
+
+    UH = rand(Distributions.Uniform(-0.15, 0.15), n_samples, 2)
     P = zeros(Float64, n_samples)
 
     for idx in 1:n_samples
-        cost = human_cost(UH[idx, :], UR, state)
+        cost = human_cost(UH[idx, :], local_UR, state)
         if isfinite(cost)
             P[idx] = exp(-beta * cost)
         else
@@ -450,10 +485,10 @@ function update_state(reward_label_1, reward_label_2, collision_label, canvas, w
     global_vars.aH[1] = heading_value
     global_vars.aH[2] = clamp(acceleration_value, accel_bound_H[1], accel_bound_H[2])
 
-    # Human reward
+    # Human reward for GUI
     rH = human_reward(pomdp, state_new, global_vars.aH)
 
-    # Average reward for all interactions for the GUI
+    # average reward for all interactions for the GUI
     if inter_num == 1
         avg_score = global_vars.total_score / inter_num
     else
@@ -482,9 +517,9 @@ function update_state(reward_label_1, reward_label_2, collision_label, canvas, w
     # Update belief
     pm = particle_memory(pomdp)  # Use the prediction model
     resize!(pm, length(b.particles))  # So the particle memory is correctly sized
-    ParticleFilters.predict!(pm, pomdp, b, aR, MersenneTwister(42)) 
+    ParticleFilters.predict!(pm, pomdp, b, aR, MersenneTwister(42))
     wm = Vector{Float64}(undef, length(pm))
-    ParticleFilters.reweight!(wm, pomdp, b, aR, pm, o)
+    ParticleFilters.reweight!(wm, pomdp, b, aR, pm, o) 
 
     # Normalize weights to avoid collapse
     total_weight = sum(wm)
@@ -517,6 +552,7 @@ function update_state(reward_label_1, reward_label_2, collision_label, canvas, w
         global_vars.aH = Float32.([reset_heading_H, reset_accel_H])  # Reset the human action
         global_vars.total_score += rH
         global_vars.interaction_score = 0.0
+        robot_ahead_counter = 0  # Reset the robot ahead counter
     end
 
     # Redraw the canvas
@@ -567,7 +603,7 @@ function draw_environment(canvas, state::pomdpState, actionR::Vector{Float32})
     # Draw the lane markings as dotted lines
     set_source_rgb(cr, 1, 1, 1)  # White lane markings
     set_line_width(cr, 4)
-    set_dash(cr, Float64[30.0, 50.0], 0.0) # Set the dash pattern to be 30 pixels on, 50 pixels off
+    set_dash(cr, Float64[30.0, 50.0], 0.0) # Set the dash pattern to be 10 pixels on, 10 pixels off
     for x in [400]
         move_to(cr, x, 0)
         line_to(cr, x, road_length)
@@ -609,7 +645,7 @@ end
 # Run the Gtk application
 function on_activate(app)
     # Create a window
-    win = GtkApplicationWindow(app, "Unified - Highway"; default_width=road_width, default_height=road_length)
+    win = GtkApplicationWindow(app, "Highway Unified"; default_width=road_width, default_height=road_length)
 
     # Apply CSS styling
     css = """
@@ -667,6 +703,7 @@ function on_activate(app)
     reward_label_2.hexpand = true
     collision_label.hexpand = true
 
+    # Show the window
     show(win)
 
     # Connect the draw function to the canvas with a default actionR
