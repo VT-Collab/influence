@@ -15,7 +15,7 @@ Run the simulation using
 julia highway-unified-sim.jl
 ```
 
-We ran our simulations using `Julia 1.11.3`[link](https://julialang.org/downloads/).
+We ran our simulations using [Julia 1.11.3](https://julialang.org/downloads/).
 
 ## Interactions
 The arguments `--int_multiplier` controls the number of interactions. We report results from $100$ interactions which is the default value for this argument.
