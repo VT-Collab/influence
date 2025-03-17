@@ -6,10 +6,10 @@ Highway environment simulation
 Run random_positions.jl to create the positions.json file before running this script
 """
 ### Comment out the Pkg stuff after the first run
-# Pkg.add(["POMDPs", "POMDPTools", "DiscreteValueIteration", "CSV", "DataFrames", 
-#                         "ArgParse", "Plots", "POMCPOW", "BasicPOMCP", "Distributions", 
-#                         "ParticleFilters", "ProgressMeter", "LinearAlgebra", "StatsBase", 
-#                         "Gtk4", "Joysticks", "Observables", "PyCall"])
+Pkg.add(["POMDPs", "POMDPTools", "DiscreteValueIteration", "CSV", "DataFrames", 
+                        "ArgParse", "Plots", "POMCPOW", "BasicPOMCP", "Distributions", 
+                        "ParticleFilters", "ProgressMeter", "LinearAlgebra", "StatsBase", 
+                        "Gtk4", "Joysticks", "Observables", "PyCall"])
 # Pkg.update()
 
 # importing the packages

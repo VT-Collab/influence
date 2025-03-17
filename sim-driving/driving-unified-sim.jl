@@ -4,11 +4,11 @@ A Unified Framework for Robots that Influence Humans over Long-Term Interaction
 Driving environment simulation
 """
 # Comment out the Pkg stuff after the first run
-# using Pkg
-# Pkg.add(["POMDPs", "POMDPTools", "DiscreteValueIteration", "CSV", "DataFrames", 
-#                         "ArgParse", "Plots", "POMCPOW", "BasicPOMCP", "Distributions", 
-#                         "ParticleFilters", "ProgressMeter", "LinearAlgebra", "StatsBase", 
-#                         "PyCall"])
+using Pkg
+Pkg.add(["POMDPs", "POMDPTools", "DiscreteValueIteration", "CSV", "DataFrames", 
+                        "ArgParse", "Plots", "POMCPOW", "BasicPOMCP", "Distributions", 
+                        "ParticleFilters", "ProgressMeter", "LinearAlgebra", "StatsBase", 
+                        "PyCall"])
 # Pkg.update()
 
 # Importing the packages

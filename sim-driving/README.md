@@ -16,7 +16,7 @@ Run the simulation using
 julia run_experiment.jl
 ```
 
-We ran our simulations using `Julia 1.11.3`.
+We ran our simulations using `Julia 1.11.3`[link](https://julialang.org/downloads/).
 
 ## Interactions
 The variable `num_experiments` controls the number of experiments. We report results from $50$ episodes which is the default value for this variable.
